@@ -7,4 +7,8 @@
                  [cheshire "5.7.0"]]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
-             :dev {:dependencies [[com.taoensso/timbre "4.8.0"]]}})
+             :dev {:dependencies [[com.taoensso/timbre "4.8.0"]]}}
+  :repositories [["releases" {:url "https://clojars.org/repo"
+                              :creds :gpg}]
+                 ["snapshots" {:url "https://clojars.org/repo"
+                               :creds :gpg}]])
