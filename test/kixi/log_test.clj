@@ -25,7 +25,8 @@
       (is (contains? result-json :line))
       (is (contains? result-json :exception))
       (is (contains? result-json :hostname))
-      (is (contains? result-json (keyword "@timestamp")))))
+      (is (contains? result-json (keyword "@timestamp")))
+      (is (= "my-app" (:application result-json) ))))
 
   (testing "Normal string msg, single-arity"
     (let [result-str  (with-out-str (timbre/info "foobar"))
@@ -53,4 +54,22 @@
           result-json (as-json result-str)]
       (is result-json)
       (is (string? (:msg result-json)))
-      (is (= (:msg result-json) "{:foo \"bar\"} 123")))))
+      (is (= (:msg result-json) "{:foo \"bar\"} 123"))))
+
+  (testing "Exception"
+    (let [result-str  (with-out-str (timbre/info (Exception. "broke!")))
+          result-json (as-json result-str)]
+      (is result-json)
+      (is (string? (:msg result-json)))
+      (is (= (:msg result-json) "broke!"))
+      (is (= (get-in result-json [:exception :type]) "class java.lang.Exception"))
+      (is (= (get-in result-json [:exception :message]) "broke!"))))
+
+  (testing "Exception + message"
+    (let [result-str  (with-out-str (timbre/info (Exception. "broke!") "456"))
+          result-json (as-json result-str)]
+      (is result-json)
+      (is (string? (:msg result-json)))
+      (is (= (:msg result-json) "456"))
+      (is (= (get-in result-json [:exception :type]) "class java.lang.Exception"))
+      (is (= (get-in result-json [:exception :message]) "broke!")))))
