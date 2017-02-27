@@ -1,5 +1,6 @@
 (ns kixi.log.timbre.appenders.logstash
-  (:require [cheshire.core :as json]))
+  (:require [cheshire.core :as json])
+  (:import [java.io Writer]))
 
 (defn stacktrace-element->vec
   [^StackTraceElement ste]
@@ -43,13 +44,21 @@
      :msg msg
      "@timestamp" (force (:timestamp_ data))}))
 
+(defn get-lock
+  [^Writer writer]
+  (let [lock-field (.getDeclaredField Writer "lock")]
+    (.setAccessible lock-field true)
+    (.get lock-field writer)))
+
 (defn json->out
   [app-name]
-  (fn [data]
-    (json/generate-stream
-     (log->json app-name data)
-     *out*)
-    (prn)))
+  (let [lock (get-lock *out*)]
+    (fn [data]
+      (locking lock
+        (json/generate-stream
+         (log->json app-name data)
+         *out*)
+        (prn)))))
 
 (defn json-appender
   [app-name]
