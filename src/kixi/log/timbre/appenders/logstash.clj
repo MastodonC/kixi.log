@@ -52,8 +52,8 @@
 
 (defn json->out
   [app-name]
-  (fn [data]
-    (let [lock (get-lock *out*)]
+  (let [lock (get-lock *out*)]
+    (fn [data]
       (locking lock
         (json/generate-stream
          (log->json app-name data)
