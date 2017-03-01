@@ -30,13 +30,12 @@
       (not-empty-str (force (:msg_ data))))))
 
 (defn log->json
-  [app-name data]
+  [data]
   (let [opts (get-in data [:config :options])
         exp (some-> (force (:?err data)) exception->map)
         msg (or (extract-msg data) (:message exp))]
     {:level (:level data)
      :namespace (:?ns-str data)
-     :application app-name
      :file (:?file data)
      :line (:?line data)
      :exception exp
@@ -51,18 +50,18 @@
     (.get lock-field writer)))
 
 (defn json->out
-  [app-name]
+  []
   (let [lock (get-lock *out*)]
     (fn [data]
       (locking lock
         (json/generate-stream
-         (log->json app-name data)
+         (log->json data)
          *out*)
         (prn)))))
 
 (defn json-appender
-  [app-name]
+  []
   {:enabled?   true
    :async?     false
    :output-fn identity
-   :fn (json->out app-name)})
+   :fn (json->out)})

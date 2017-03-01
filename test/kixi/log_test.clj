@@ -12,7 +12,7 @@
 (deftest timbre-appender-logstash-test
   (timbre/set-config! {:level :info
                        :timestamp-opts default-timestamp-opts
-                       :appenders {:direct-json (timbre-appender-logstash "my-app")}})
+                       :appenders {:direct-json (timbre-appender-logstash)}})
   (testing "Logstash keys are present"
     (let [result-str  (with-out-str (timbre/info "foobar"))
           result-json (as-json result-str)]
@@ -20,13 +20,11 @@
       (is (contains? result-json :msg))
       (is (contains? result-json :level))
       (is (contains? result-json :namespace))
-      (is (contains? result-json :application))
       (is (contains? result-json :file))
       (is (contains? result-json :line))
       (is (contains? result-json :exception))
       (is (contains? result-json :hostname))
-      (is (contains? result-json (keyword "@timestamp")))
-      (is (= "my-app" (:application result-json) ))))
+      (is (contains? result-json (keyword "@timestamp")))))
 
   (testing "Normal string msg, single-arity"
     (let [result-str  (with-out-str (timbre/info "foobar"))
