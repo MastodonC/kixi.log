@@ -4,13 +4,13 @@
 
 (defn stacktrace-element->vec
   [^StackTraceElement ste]
-  [(.getFileName ste) (.getLineNumber ste) (.getMethodName ste)])
+  [(.getClassName ste) (.getFileName ste) (.getLineNumber ste) (.getMethodName ste)])
 
 (defn exception->map
   [^Throwable e]
   (merge
    {:type (str (type e))
-    :trace (mapv stacktrace-element->vec (.getStackTrace e))}
+    :trace (apply str (mapv stacktrace-element->vec (.getStackTrace e)))}
    (when-let [m (.getMessage e)]
      {:message m})
    (when-let [c (.getCause e)]
