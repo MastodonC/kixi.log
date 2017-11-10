@@ -1,4 +1,4 @@
-(defproject kixi/kixi.log "0.1.5-SNAPSHOT"
+(defproject kixi/kixi.log "0.1.5"
   :description "Logging helpers for the Kixi platform"
   :url "http://mastodonc.com"
   :license {:name "Eclipse Public License"
