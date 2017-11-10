@@ -14,7 +14,9 @@
    (when-let [m (.getMessage e)]
      {:message m})
    (when-let [c (.getCause e)]
-     {:cause (exception->map c)})))
+     {:cause (exception->map c)})
+   (when (instance? clojure.lang.ExceptionInfo e)
+     {:data (ex-data e)})))
 
 (defn not-empty-str
   [s]
