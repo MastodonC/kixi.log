@@ -1,10 +1,24 @@
 (ns kixi.log.timbre.appenders.logstash
-  (:require [cheshire.core :as json])
-  (:import [java.io Writer]))
+  (:require [cheshire.core :as json]
+            [clojure.walk :refer [postwalk]])
+  (:import java.io.Writer))
 
 (defn stacktrace-element->vec
   [^StackTraceElement ste]
   [(.getClassName ste) (.getFileName ste) (.getLineNumber ste) (.getMethodName ste)])
+
+(defn dedot
+  "Remove dots from map key names"
+  [m]
+  (let [f (fn [[k v]] (if (keyword? k)
+                        [(-> k
+                             name
+                             (clojure.string/replace #"\." "_")
+                             keyword) v]
+                        [k v]))]
+    (postwalk (fn [x] (if (map? x)
+                        (into {} (map f x))
+                        x)) m)))
 
 (defn exception->map
   [^Throwable e]
@@ -16,7 +30,7 @@
    (when-let [c (.getCause e)]
      {:cause (exception->map c)})
    (when (instance? clojure.lang.ExceptionInfo e)
-     {:data (ex-data e)})))
+     {:data (dedot (ex-data e))})))
 
 (defn not-empty-str
   [s]
