@@ -85,16 +85,6 @@
       (is (= (get-in result-json [:exception :type]) "class java.lang.Exception"))
       (is (= (get-in result-json [:exception :message]) "broke!"))))
 
-  (testing "Exception Info + data"
-    (let [result-str  (with-out-str (timbre/info (ex-info "broke!" {:data true})))
-          result-json (as-json result-str)]
-      (is result-json)
-      (is (string? (:msg result-json)))
-      (is (= (:msg result-json) "broke!"))
-      (is (= (get-in result-json [:exception :type]) "class clojure.lang.ExceptionInfo"))
-      (is (= (get-in result-json [:exception :message]) "broke!"))
-      (is (= (get-in result-json [:exception :data]) {:data true}))))
-  
   (testing "Exception Info + data with dedotted map"
     (let [result-str  (with-out-str (timbre/info (ex-info "broke!" {:foo 1
                                                                     :bar 2
@@ -102,9 +92,9 @@
           result-json (as-json result-str)]
       (is result-json)
       (is (string? (:msg result-json)))
-      (is (= (:msg result-json) "broke!"))
-      (is (= (get-in result-json [:exception :type]) "class clojure.lang.ExceptionInfo"))
-      (is (= (get-in result-json [:exception :message]) "broke!"))
+      (is (= "broke!" (:msg result-json) ))
+      (is (= "class clojure.lang.ExceptionInfo" (get-in result-json [:exception :type])))
+      (is (= "broke!" (get-in result-json [:exception :message])))
       (is (= {:foo 1
               :bar 2
               :foo_bar 3}
