@@ -1,6 +1,7 @@
 (ns kixi.log-test
   (:require [clojure.test :refer :all]
             [kixi.log :refer :all]
+            [kixi.log.timbre.appenders.logstash :refer [dedot]]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]))
 
@@ -8,6 +9,18 @@
   [s]
   (try (json/parse-string-strict s keyword)
        (catch Exception e nil)))
+
+(deftest dedot-test
+  (testing ""
+    (is (= {} (dedot {})))
+    (is (= {:foo "bar"
+            :fizz "buzz"}
+           (dedot {:foo "bar"
+                   :fizz "buzz"})))
+    (is (= {:foo_bar "bizz buzz"}
+           (dedot {:foo.bar "bizz buzz"})))
+    (is (= {:foo {:bar_buzz "baz"}}
+           (dedot {:foo {:bar.buzz "baz"}})))))
 
 (deftest timbre-appender-logstash-test
   (timbre/set-config! {:level :info
@@ -72,12 +85,17 @@
       (is (= (get-in result-json [:exception :type]) "class java.lang.Exception"))
       (is (= (get-in result-json [:exception :message]) "broke!"))))
 
-  (testing "Exception Info + data"
-    (let [result-str  (with-out-str (timbre/info (ex-info "broke!" {:data true})))
+  (testing "Exception Info + data with dedotted map"
+    (let [result-str  (with-out-str (timbre/info (ex-info "broke!" {:foo 1
+                                                                    :bar 2
+                                                                    :foo.bar 3})))
           result-json (as-json result-str)]
       (is result-json)
       (is (string? (:msg result-json)))
-      (is (= (:msg result-json) "broke!"))
-      (is (= (get-in result-json [:exception :type]) "class clojure.lang.ExceptionInfo"))
-      (is (= (get-in result-json [:exception :message]) "broke!"))
-      (is (= (get-in result-json [:exception :data]) {:data true})))))
+      (is (= "broke!" (:msg result-json) ))
+      (is (= "class clojure.lang.ExceptionInfo" (get-in result-json [:exception :type])))
+      (is (= "broke!" (get-in result-json [:exception :message])))
+      (is (= {:foo 1
+              :bar 2
+              :foo_bar 3}
+             (get-in result-json [:exception :data]))))))
